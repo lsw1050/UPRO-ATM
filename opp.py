@@ -9,7 +9,7 @@ import streamlit.components.v1 as components
 # ==========================================
 # 1. 페이지 설정 및 데이터 유지 (Session State)
 # ==========================================
-st.set_page_config(page_title="UPRO 실전 터미널", page_icon="🏦", layout="wide")
+st.set_page_config(page_title="S-ATM", page_icon="✨", layout="wide")
 
 # [세션 상태 관리] 새로고침 시에도 입력값이 날아가지 않도록 보호
 if 'seed' not in st.session_state: st.session_state.seed = 37000.0
@@ -18,7 +18,7 @@ if 'avg' not in st.session_state: st.session_state.avg = 115.76
 if 'step' not in st.session_state: st.session_state.step = 2
 
 # 사이드바 입력창
-st.sidebar.markdown("### 🏦 나의 계좌 정보")
+st.sidebar.markdown("### ✨ 나의 계좌 정보")
 seed = st.sidebar.number_input("1. 총 투자 원금 ($)", value=st.session_state.seed, step=100.0)
 qty = st.sidebar.number_input("2. 현재 보유 수량 (주)", value=st.session_state.qty, step=1)
 avg = st.sidebar.number_input("3. 나의 현재 평단가 ($)", value=st.session_state.avg, step=0.01)
@@ -68,31 +68,36 @@ if data is not None and not data.empty and len(data) >= 2:
     buy_qty = int(min(target_usd, remaining_usd) / buy_loc) if buy_loc > 0 else 0
 
     # ------------------------------------------
-    # 🎆 [실용적 기능] 수익 10만원 이상 세련된 폭죽 효과
+    # 💸 [수익 잭팟 효과] 지폐 비 & 살아있는 황금 테두리
     # ------------------------------------------
     if profit_loss_krw >= 100000:
-        # 1. 고해상도 폭죽 (Confetti) 자바스크립트 주입
+        # 1. 지폐(💸) 이모지 비 내리기 (Money Rain)
         components.html(
             """
             <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
             <script>
-                var end = Date.now() + (2 * 1000); // 2초 동안 발사
-                var colors = ['#FFD700', '#FF4B4B', '#1B6BFF', '#ffffff'];
+                var end = Date.now() + (3 * 1000); // 3초 동안 지속
+                
                 (function frame() {
+                    // 왼쪽에서 발사
                     confetti({
-                        particleCount: 3,
+                        particleCount: 2,
                         angle: 60,
                         spread: 55,
                         origin: { x: 0 },
-                        colors: colors
+                        shapes: ['emoji'],
+                        emoji: ['💸', '💵', '💰'] // 지폐 관련 이모지
                     });
+                    // 오른쪽에서 발사
                     confetti({
-                        particleCount: 3,
+                        particleCount: 2,
                         angle: 120,
                         spread: 55,
                         origin: { x: 1 },
-                        colors: colors
+                        shapes: ['emoji'],
+                        emoji: ['💸', '💵', '💰']
                     });
+
                     if (Date.now() < end) {
                         requestAnimationFrame(frame);
                     }
@@ -101,23 +106,31 @@ if data is not None and not data.empty and len(data) >= 2:
             """,
             height=0,
         )
-        # 2. 황금 테두리 강조 CSS
+
+        # 2. 살아있는(일렁이는) 황금빛 테두리 애니메이션
         st.markdown("""
             <style>
+            @keyframes gold-glow {
+                0% { border-color: #FFD700; box-shadow: 0 0 10px #FFD700, inset 0 0 10px #FFD700; }
+                50% { border-color: #FFA500; box-shadow: 0 0 30px #FFA500, inset 0 0 30px #FFA500; }
+                100% { border-color: #FFD700; box-shadow: 0 0 10px #FFD700, inset 0 0 10px #FFD700; }
+            }
             [data-testid="stAppViewContainer"] {
                 border: 10px solid #FFD700;
+                animation: gold-glow 2s infinite alternate; /* 일렁이는 효과 */
                 box-sizing: border-box;
             }
             </style>
             """, unsafe_allow_html=True)
-        st.success(f"🏆 **수익금 {profit_loss_krw:,.0f}원 돌파!** 원칙 매매의 결실입니다!")
+        
+        st.success(f"🏆 **수익금 {profit_loss_krw:,.0f}원 돌파!** 하늘에서 돈비가 내립니다! 💸")
 
     # ==========================================
-    # 4. 화면 구성
+    # 4. 화면 구성 (기존 로직 완벽 유지)
     # ==========================================
     st.title("📟 UPRO 실전 매매 터미널")
     
-    # [최상단] 주문 정보 (디자인 강화)
+    # [최상단] 주문 정보
     st.divider()
     o1, o2 = st.columns(2)
     with o1:
