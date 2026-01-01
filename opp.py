@@ -87,65 +87,58 @@ if data is not None and not data.empty and len(data) >= 2:
     with o2:
         st.warning(f"### 🔴 매도 LOC (전량)\n\n**가격: `${sell_loc_usd:.2f}`**\n\n**수량: `{HOLDING_QTY}주`**")
 
-   # --- 그래프 섹션 (시각화 강화 버전) ---
+  # --- 그래프 섹션 (가로 가독성 강화 버전) ---
     st.divider()
-    st.subheader("📈 가격 위치 확인 (실시간 가이드라인)")
-    
+    st.subheader("📈 실시간 가격 가이드라인 (우측 정렬)")
+
     fig = go.Figure()
 
-    # 1. 주가 선 (메인 데이터)
+    # 1. 주가 선
     fig.add_trace(go.Scatter(
         x=data.index[-15:], 
         y=data[TICKER].tail(15), 
         mode='lines+markers', 
         name='현재가',
-        line=dict(color='#00FF00', width=2) # 현재가는 형광 초록색으로 강조
+        line=dict(color='#00FF00', width=2)
     ))
 
-    # 2. 내 평단가 라인 (흰색 점선 + 흰색 굵은 글씨)
-    fig.add_hline(
-        y=AVG_PRICE_USD, 
-        line_dash="dash", 
-        line_color="white", 
-        line_width=2,
-        annotation_text="<b>내 평단가</b>", 
-        annotation_position="top left",
-        annotation_font_size=14,
-        annotation_font_color="white"
-    )
+    # 가이드라인 설정 (글씨를 밖으로 빼기 위해 별도의 annotation 사용)
+    lines = [
+        {"y": sell_loc_usd, "color": "blue", "text": "매도 LOC", "pos": "top"},
+        {"y": AVG_PRICE_USD, "color": "white", "text": "내 평단가", "pos": "middle"},
+        {"y": buy_loc_usd, "color": "red", "text": "매수 LOC", "pos": "bottom"}
+    ]
 
-    # 3. 매수 LOC 라인 (빨간색 점선 + 빨간색 굵은 글씨)
-    fig.add_hline(
-        y=buy_loc_usd, 
-        line_dash="dot", 
-        line_color="red", 
-        line_width=2,
-        annotation_text="<b>매수 LOC</b>", 
-        annotation_position="bottom right",
-        annotation_font_size=14,
-        annotation_font_color="red"
-    )
+    for line in lines:
+        # 가로 점선 추가
+        fig.add_hline(
+            y=line["y"], 
+            line_dash="dot", 
+            line_color=line["color"], 
+            line_width=2
+        )
+        
+        # 우측 여백에 글씨 추가 (xref="paper"를 사용하여 차트 바깥쪽 정렬)
+        fig.add_annotation(
+            x=1.02, # 차트 오른쪽 끝에서 살짝 밖으로 (0~1 범위 밖)
+            y=line["y"],
+            xref="paper",
+            yref="y",
+            text=f"<b>{line['text']}<br>${line['y']:.2f}</b>",
+            showarrow=False,
+            font=dict(size=13, color=line["color"]),
+            align="left",
+            xanchor="left"
+        )
 
-    # 4. 매도 LOC 라인 (파란색 점선 + 파란색 굵은 글씨)
-    fig.add_hline(
-        y=sell_loc_usd, 
-        line_dash="dot", 
-        line_color="blue", 
-        line_width=2,
-        annotation_text="<b>매도 LOC</b>", 
-        annotation_position="top right",
-        annotation_font_size=14,
-        annotation_font_color="blue"
-    )
-
-    # 차트 레이아웃 설정 (다크 테마 적용)
+    # 차트 레이아웃 설정
     fig.update_layout(
-        template="plotly_dark", # 흰색 선이 잘 보이도록 다크 모드 적용
-        height=500,
-        margin=dict(l=10, r=10, t=50, b=10),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        xaxis=dict(showgrid=True, gridcolor='gray'),
-        yaxis=dict(showgrid=True, gridcolor='gray')
+        template="plotly_dark",
+        height=550,
+        margin=dict(l=10, r=120, t=50, b=10), # 오른쪽 여백(r)을 120으로 대폭 확대
+        xaxis=dict(showgrid=True, gridcolor='gray', tickformat='%m-%d'),
+        yaxis=dict(showgrid=True, gridcolor='gray', side="left"), # 기본 축은 왼쪽
+        showlegend=False
     )
     
     st.plotly_chart(fig, use_container_width=True)
