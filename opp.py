@@ -71,40 +71,46 @@ if data is not None and not data.empty and len(data) >= 2:
     # 💸 [수익 잭팟 효과] 지폐 비 & 살아있는 황금 테두리
     # ------------------------------------------
     if profit_loss_krw >= 100000:
-        # 1. 지폐(💸) 이모지 비 내리기 (Money Rain)
+        # 1. 지폐(💸) 및 ✨ 이모지 비 (HTML 컴포넌트 방식 수정)
         components.html(
             """
-            <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+            <div id="confetti-wrapper" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 9999;"></div>
+            <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
             <script>
-                var end = Date.now() + (3 * 1000); // 3초 동안 지속
-                
-                (function frame() {
-                    // 왼쪽에서 발사
-                    confetti({
-                        particleCount: 2,
-                        angle: 60,
-                        spread: 55,
-                        origin: { x: 0 },
-                        shapes: ['emoji'],
-                        emoji: ['💸', '💵', '💰'] // 지폐 관련 이모지
-                    });
-                    // 오른쪽에서 발사
-                    confetti({
-                        particleCount: 2,
-                        angle: 120,
-                        spread: 55,
-                        origin: { x: 1 },
-                        shapes: ['emoji'],
-                        emoji: ['💸', '💵', '💰']
-                    });
+                function rainMoney() {
+                    var end = Date.now() + (3 * 1000);
+                    var emojis = ['💸', '💵', '💰', '✨', '🤑'];
+                    
+                    (function frame() {
+                        confetti({
+                            particleCount: 5,
+                            angle: 60,
+                            spread: 55,
+                            origin: { x: 0, y: 0.5 },
+                            shapes: ['text'],
+                            shapeOptions: { text: { value: emojis[Math.floor(Math.random() * emojis.length)] } },
+                            scalar: 3
+                        });
+                        confetti({
+                            particleCount: 5,
+                            angle: 120,
+                            spread: 55,
+                            origin: { x: 1, y: 0.5 },
+                            shapes: ['text'],
+                            shapeOptions: { text: { value: emojis[Math.floor(Math.random() * emojis.length)] } },
+                            scalar: 3
+                        });
 
-                    if (Date.now() < end) {
-                        requestAnimationFrame(frame);
-                    }
-                }());
+                        if (Date.now() < end) {
+                            requestAnimationFrame(frame);
+                        }
+                    }());
+                }
+                // 브라우저 렌더링 후 실행
+                setTimeout(rainMoney, 500);
             </script>
             """,
-            height=0,
+            height=300, # 높이를 확보해야 캔버스가 보입니다.
         )
 
         # 2. 살아있는(일렁이는) 황금빛 테두리 애니메이션
@@ -117,16 +123,16 @@ if data is not None and not data.empty and len(data) >= 2:
             }
             [data-testid="stAppViewContainer"] {
                 border: 10px solid #FFD700;
-                animation: gold-glow 2s infinite alternate; /* 일렁이는 효과 */
+                animation: gold-glow 2s infinite alternate;
                 box-sizing: border-box;
             }
             </style>
             """, unsafe_allow_html=True)
         
-        st.success(f"🏆 **수익금 {profit_loss_krw:,.0f}원 돌파!** 하늘에서 돈비가 내립니다! 💸")
+        st.success(f"🏆 **수익금 {profit_loss_krw:,.0f}원 돌파!** 💸 돈 비가 내립니다! 💸")
 
     # ==========================================
-    # 4. 화면 구성 (기존 로직 완벽 유지)
+    # 4. 화면 구성
     # ==========================================
     st.title("📟 UPRO 실전 매매 터미널")
     
