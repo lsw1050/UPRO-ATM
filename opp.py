@@ -5,8 +5,6 @@ import plotly.graph_objects as go
 from datetime import datetime
 import numpy as np
 import streamlit.components.v1 as components
-import json
-
 
 # ==========================================
 # 1. 페이지 설정 및 데이터 유지 (Session State)
@@ -137,36 +135,6 @@ if data is not None and not data.empty and len(data) >= 2:
             <h4>주문 수량: {qty}주 <small>(약 {sell_loc*rate*qty:,.0f}원)</small></h4>
         </div>""", unsafe_allow_html=True)
 
-    # ==========================================
-    # [추가] LOC 주문 복사 버튼
-    # ==========================================
-    st.write("")
-    copy1, copy2 = st.columns(2)
-    
-    with copy1:
-        buy_text = f"UPRO 매수 LOC\n지정가: ${buy_loc:.2f}\n수량: {buy_qty}주"
-        if st.button("📋 매수 주문 복사", use_container_width=True):
-            st.code(buy_text, language=None)
-            # JavaScript 클립보드 복사
-            components.html(f"""
-                <script>
-                    navigator.clipboard.writeText(`{buy_text}`);
-                </script>
-                <p style="color: #28a745; font-weight: bold;">✅ 클립보드에 복사됨!</p>
-            """, height=50)
-    
-    with copy2:
-        sell_text = f"UPRO 매도 LOC\n지정가: ${sell_loc:.2f}\n수량: {qty}주 (전량)"
-        if st.button("📋 매도 주문 복사", use_container_width=True):
-            st.code(sell_text, language=None)
-            # JavaScript 클립보드 복사
-            components.html(f"""
-                <script>
-                    navigator.clipboard.writeText(`{sell_text}`);
-                </script>
-                <p style="color: #28a745; font-weight: bold;">✅ 클립보드에 복사됨!</p>
-            """, height=50)
-
     # [중단] 주요 지표
     st.write("")
     c1, c2, c3 = st.columns(3)
@@ -193,70 +161,6 @@ if data is not None and not data.empty and len(data) >= 2:
 
     fig.update_layout(template="plotly_dark", height=550, margin=dict(l=10, r=120, t=50, b=10), showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
-
-    # ==========================================
-    # 5. 거래 기록 저장
-    # ==========================================
-    st.divider()
-    st.subheader("💾 거래 기록")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("📥 매수 기록 저장"):
-            record = {
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "type": "BUY",
-                "price": round(buy_loc, 2),
-                "qty": buy_qty,
-                "step": step
-            }
-            
-            try:
-                with open("trade_log.json", "r") as f:
-                    logs = json.load(f)
-            except:
-                logs = []
-            
-            logs.append(record)
-            with open("trade_log.json", "w") as f:
-                json.dump(logs, f, indent=2)
-            
-            st.success("✅ 매수 기록 저장 완료!")
-    
-    with col2:
-        if st.button("📤 매도 기록 저장"):
-            record = {
-                "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "type": "SELL",
-                "price": round(sell_loc, 2),
-                "qty": qty,
-                "step": 0
-            }
-            
-            try:
-                with open("trade_log.json", "r") as f:
-                    logs = json.load(f)
-            except:
-                logs = []
-            
-            logs.append(record)
-            with open("trade_log.json", "w") as f:
-                json.dump(logs, f, indent=2)
-            
-            st.success("✅ 매도 기록 저장 완료!")
-    
-    # 거래 내역 표시
-    if st.checkbox("📜 거래 내역 보기"):
-        try:
-            with open("trade_log.json", "r") as f:
-                logs = json.load(f)
-            if logs:
-                df_logs = pd.DataFrame(logs)
-                st.dataframe(df_logs, use_container_width=True)
-            else:
-                st.info("거래 내역이 없습니다.")
-        except FileNotFoundError:
-            st.info("거래 내역이 없습니다.")
 
 else:
     st.error("데이터 로딩 중... 잠시만 기다려주세요.")
