@@ -59,7 +59,7 @@ with st.sidebar:
     st.markdown("<h1 style='text-align: center;'>🏧</h1>", unsafe_allow_html=True)
     st.markdown("<h2 style='text-align: center;'>계좌 설정</h2>", unsafe_allow_html=True)
     st.divider()
-    seed = st.number_input("💰 총 원금 ($)", value=st.session_state.seed, step=100.0)
+    seed = st.number_input("💰 총 원금 (달러)", value=st.session_state.seed, step=100.0)
     qty = st.number_input("📦 보유 수량 (주)", value=st.session_state.qty, step=1)
     avg = st.number_input("🏷️ 나의 평단 ($)", value=st.session_state.avg, step=0.01)
     step = st.select_slider("🎯 매수 회차", options=[1, 2, 3], value=st.session_state.step)
@@ -130,24 +130,24 @@ if market_result:
     buy_qty = int(min(target_usd, remaining_usd) / buy_loc) if buy_loc > 0 else 0
 
     # UI 출력
-    st.markdown("<h1 style='text-align: center; color: #38bdf8; font-size: 48px;'>UPRO 매매 터미널</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #38bdf8; font-size: 48px;'>UPRO ATM</h1>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align: center; color: #FFFFFF;'>산출 기준일: {final_data.index[-1].strftime('%Y-%m-%d')} (확정 종가: ${base_price:.2f})</p>", unsafe_allow_html=True)
 
     # 주문 카드 (고대비 흰색 글씨)
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"""<div class="order-box" style="background-color: rgba(220, 38, 38, 0.3); border-color: #ef4444;">
-            <h2 style="color: #FFFFFF !important; margin: 0;">🔵 매수 LOC ({step}회차)</h2>
+            <h2 style="color: #FFFFFF !important; margin: 0;">🔵 매수 LOC 구매하기 ({step}회차)</h2>
             <div class="big-price">${buy_loc:.2f}</div>
-            <p style="font-size: 26px; font-weight: bold; color: white;">주문 수량: {buy_qty}주</p>
+            <p style="font-size: 26px; font-weight: bold; color: white;">주문 수량: {buy_qty}주 구매</p>
         </div>""", unsafe_allow_html=True)
         st.button("📋 매수 복사", key="b_cp", use_container_width=True)
 
     with c2:
         st.markdown(f"""<div class="order-box" style="background-color: rgba(37, 99, 235, 0.3); border-color: #3b82f6;">
-            <h2 style="color: #FFFFFF !important; margin: 0;">🔴 매도 LOC (전량)</h2>
+            <h2 style="color: #FFFFFF !important; margin: 0;">🔴 매도 LOC 판매하기 (전량)</h2>
             <div class="big-price">${sell_loc:.2f}</div>
-            <p style="font-size: 26px; font-weight: bold; color: white;">주문 수량: {qty}주</p>
+            <p style="font-size: 26px; font-weight: bold; color: white;">주문 수량: {qty}주 판매</p>
         </div>""", unsafe_allow_html=True)
         st.button("📋 매도 복사", key="s_cp", use_container_width=True)
 
