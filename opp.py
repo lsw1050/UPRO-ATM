@@ -130,14 +130,14 @@ if market_result:
     buy_qty = int(min(target_usd, remaining_usd) / buy_loc) if buy_loc > 0 else 0
 
     # UI 출력
-    st.markdown("<h1 style='text-align: center; color: #38bdf8; font-size: 48px;'>UPRO ATM</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #38bdf8; font-size: 48px;'>UPRO 매매</h1>", unsafe_allow_html=True)
     st.markdown(f"<p style='text-align: center; color: #FFFFFF;'>산출 기준일: {final_data.index[-1].strftime('%Y-%m-%d')} (확정 종가: ${base_price:.2f})</p>", unsafe_allow_html=True)
 
     # 주문 카드 (고대비 흰색 글씨)
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"""<div class="order-box" style="background-color: rgba(220, 38, 38, 0.3); border-color: #ef4444;">
-            <h2 style="color: #FFFFFF !important; margin: 0;">🔵 매수 LOC 구매하기 ({step}회차)</h2>
+            <h2 style="color: #FFFFFF !important; margin: 0;">🔵 매수 LOC ({step}회차)</h2>
             <div class="big-price">${buy_loc:.2f}</div>
             <p style="font-size: 26px; font-weight: bold; color: white;">주문 수량: {buy_qty}주 구매</p>
         </div>""", unsafe_allow_html=True)
@@ -145,7 +145,7 @@ if market_result:
 
     with c2:
         st.markdown(f"""<div class="order-box" style="background-color: rgba(37, 99, 235, 0.3); border-color: #3b82f6;">
-            <h2 style="color: #FFFFFF !important; margin: 0;">🔴 매도 LOC 판매하기 (전량)</h2>
+            <h2 style="color: #FFFFFF !important; margin: 0;">🔴 매도 LOC (전량)</h2>
             <div class="big-price">${sell_loc:.2f}</div>
             <p style="font-size: 26px; font-weight: bold; color: white;">주문 수량: {qty}주 판매</p>
         </div>""", unsafe_allow_html=True)
