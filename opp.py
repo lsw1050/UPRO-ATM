@@ -9,7 +9,7 @@ import requests
 # ==========================================
 # 페이지 설정
 # ==========================================
-st.set_page_config(page_title="LSW SIGNAL", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="LSW LOC", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
 
 # ==========================================
 # 스타일
@@ -55,9 +55,28 @@ st.markdown("""
     .stSuccess { background: rgba(34, 197, 94, 0.1) !important; border-radius: 12px !important; }
     .stInfo { background: rgba(59, 130, 246, 0.1) !important; border-radius: 12px !important; }
     
-    /* 모바일 최적화 */
+    /* 모바일에서도 PC처럼 보이게 - 2열 레이아웃 유지 */
+    [data-testid="column"] {
+        min-width: 0 !important;
+    }
+    
+    /* 모바일 뷰포트 강제 확대 방지 */
     @media (max-width: 768px) {
-        .block-container { padding: 1rem !important; }
+        .block-container {
+            padding: 1rem !important;
+            max-width: 100% !important;
+        }
+        
+        /* 컬럼이 세로로 쌓이지 않도록 */
+        [data-testid="stHorizontalBlock"] {
+            flex-wrap: nowrap !important;
+            gap: 0.5rem !important;
+        }
+        
+        [data-testid="column"] {
+            width: 50% !important;
+            flex: 1 1 50% !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -87,8 +106,8 @@ st.markdown("""
         <span style="font-size: 24px;">💎</span>
     </div>
     <div>
-        <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0;">LSW SIGNAL</h1>
-        <p style="color: #6b7280; font-size: 12px; margin: 2px 0 0 0;">변동성 자동매매 시스템</p>
+        <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0;">LSW LOC</h1>
+        <p style="color: #6b7280; font-size: 12px; margin: 2px 0 0 0;">시그마 자동매매 시스템</p>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -337,100 +356,184 @@ if data is not None and not data.empty and len(data) >= 2:
         """, unsafe_allow_html=True)
 
     # ==========================================
-    # 📖 사용 가이드
+    # 📖 사용 가이드 (상세 버전)
     # ==========================================
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<p style="color: #6b7280; font-size: 13px; font-weight: 600; margin-bottom: 15px;">📖 S-ATM 사용 가이드</p>', unsafe_allow_html=True)
+    st.markdown('<p style="color: #6b7280; font-size: 13px; font-weight: 600; margin-bottom: 15px;">📖사용 가이드</p>', unsafe_allow_html=True)
     
+    # 전략 소개
     st.markdown("""
-    <div style="padding: 10px 0;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
-            <span style="font-size: 24px;">💡</span>
+    <div style="background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(99,102,241,0.02) 100%); border: 1px solid rgba(99,102,241,0.2); border-radius: 20px; padding: 24px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <span style="font-size: 28px;">💡</span>
             <div>
-                <p style="color: #a5b4fc; font-size: 16px; font-weight: 700; margin: 0;">시그마(σ) 기반 LOC 분할매수 전략</p>
-                <p style="color: #6b7280; font-size: 12px; margin: 4px 0 0 0;">변동성을 활용한 자동 지정가 매매 시스템</p>
+                <p style="color: #a5b4fc; font-size: 18px; font-weight: 700; margin: 0;">변동성 기반 LOC 매매 전략</p>
+                <p style="color: #6b7280; font-size: 13px; margin: 4px 0 0 0;">변동성을 활용한 자동 지정가 매매 시스템</p>
             </div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    g1, g2 = st.columns(2)
-    with g1:
-        st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 13px;">1</span>
-                </div>
-                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">투자금 설정</p>
-            </div>
-            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-                상단 <span style="color: #a5b4fc;">⚙️ 계좌 설정</span>에서 투자 원금(달러)을 입력하세요.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-    with g2:
-        st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 13px;">2</span>
-                </div>
-                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">LOC 주문 확인</p>
-            </div>
-            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-                <span style="color: #4ade80;">매수가</span>와 <span style="color: #f87171;">매도가</span>는 매일 자동 업데이트됩니다.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    g3, g4 = st.columns(2)
-    with g3:
-        st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 13px;">3</span>
-                </div>
-                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">3회 분할 매수</p>
-            </div>
-            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-                투자금을 <span style="color: #a5b4fc;">1:1:2</span> 비율로 3회 나눠 투자합니다.
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-    with g4:
-        st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #ec4899, #be185d); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 13px;">4</span>
-                </div>
-                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">증권사 주문</p>
-            </div>
-            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
-                복사 버튼 → 증권사 앱 <span style="color: #fbbf24;">LOC 주문</span>에 붙여넣기
-            </p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("""
-    <div style="padding: 16px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.15); border-radius: 12px; margin-top: 8px;">
-        <p style="color: #fbbf24; font-size: 13px; font-weight: 600; margin: 0 0 6px 0;">⚡ 처음 시작하는 경우</p>
-        <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
-            보유 수량/평단가를 <span style="color: #fff;">0</span>으로, 매수 회차를 <span style="color: #fff;">1회차</span>로 설정 후 시작하세요.
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.8; margin: 0;">
+            이 전략은 <span style="color: #ffffff;">시장 변동성(σ, 시그마)</span>을 기반으로 매수/매도 가격을 자동 계산합니다.
+            변동성이 클수록 매수가와 매도가의 폭이 넓어지고, 변동성이 작으면 폭이 좁아집니다.
+            이를 통해 시장 상황에 맞는 <span style="color: #a5b4fc;">적응형 지정가 매매</span>가 가능합니다.
         </p>
     </div>
     """, unsafe_allow_html=True)
     
+    # Step 1
     st.markdown("""
-    <div style="padding: 16px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: 12px; margin-top: 12px;">
-        <p style="color: #a5b4fc; font-size: 13px; font-weight: 600; margin: 0 0 6px 0;">📌 LOC 주문이란?</p>
-        <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
-            장 마감 시점에 지정가로 체결되는 주문. 한국시간 오전 5~6시에 실행됩니다.
+    <div style="background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); border-left: 4px solid #22c55e; border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-weight: 800; font-size: 14px;">1</span>
+            </div>
+            <p style="color: #4ade80; font-size: 16px; font-weight: 700; margin: 0;">투자 원금 설정</p>
+        </div>
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0 0 12px 0;">
+            상단 <span style="color: #ffffff;">⚙️ 계좌 설정</span> 영역에서 본인의 <span style="color: #4ade80;">총 투자 원금(달러)</span>을 입력하세요.
         </p>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                💡 <span style="color: #9ca3af;">예시: $30,000을 투자할 계획이라면 "투자 원금"에 30000 입력</span>
+            </p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
+    
+    # Step 2
+    st.markdown("""
+    <div style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); border-left: 4px solid #3b82f6; border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-weight: 800; font-size: 14px;">2</span>
+            </div>
+            <p style="color: #60a5fa; font-size: 16px; font-weight: 700; margin: 0;">보유 현황 입력</p>
+        </div>
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0 0 12px 0;">
+            현재 보유 중인 <span style="color: #60a5fa;">주식 수량</span>과 <span style="color: #60a5fa;">평균 매수 단가</span>를 입력하세요.
+        </p>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0 0 6px 0;">
+                💡 <span style="color: #9ca3af;">처음 시작하는 경우: 보유 수량 = 0, 평균 단가 = 0 으로 설정</span>
+            </p>
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                💡 <span style="color: #9ca3af;">이미 보유 중인 경우: 증권사 앱에서 확인한 수량과 평단가 입력</span>
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Step 3
+    st.markdown("""
+    <div style="background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-left: 4px solid #f59e0b; border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-weight: 800; font-size: 14px;">3</span>
+            </div>
+            <p style="color: #fbbf24; font-size: 16px; font-weight: 700; margin: 0;">매수 회차 선택</p>
+        </div>
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0 0 12px 0;">
+            투자금은 <span style="color: #fbbf24;">1 : 1 : 2</span> 비율로 총 3회에 나눠 투자합니다. 현재 몇 회차 매수인지 선택하세요.
+        </p>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0 0 4px 0;">
+                • <span style="color: #ffffff;">1회차</span>: 총 투자금의 25% 매수 (첫 진입)
+            </p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 0 0 4px 0;">
+                • <span style="color: #ffffff;">2회차</span>: 총 투자금의 25% 추가 매수 (하락 시 물타기)
+            </p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+                • <span style="color: #ffffff;">3회차</span>: 총 투자금의 50% 추가 매수 (최종 물타기)
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Step 4
+    st.markdown("""
+    <div style="background: rgba(236,72,153,0.06); border: 1px solid rgba(236,72,153,0.15); border-left: 4px solid #ec4899; border-radius: 12px; padding: 20px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ec4899, #be185d); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-weight: 800; font-size: 14px;">4</span>
+            </div>
+            <p style="color: #f472b6; font-size: 16px; font-weight: 700; margin: 0;">LOC 주문 복사 → 증권사 앱에서 주문</p>
+        </div>
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0 0 12px 0;">
+            화면에 표시된 <span style="color: #4ade80;">매수 지정가</span>와 <span style="color: #f87171;">매도 지정가</span>를 확인하고,
+            <span style="color: #f472b6;">"주문 복사"</span> 버튼을 눌러 증권사 앱에 붙여넣기 하세요.
+        </p>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0 0 6px 0;">
+                📱 <span style="color: #ffffff;">증권사 앱 주문 방법</span>
+            </p>
+            <p style="color: #6b7280; font-size: 12px; margin: 0 0 4px 0;">
+                1. 증권사 앱 실행 → 해외주식 → UPRO 검색
+            </p>
+            <p style="color: #6b7280; font-size: 12px; margin: 0 0 4px 0;">
+                2. 주문 유형에서 <span style="color: #fbbf24;">"LOC (장마감지정가)"</span> 선택
+            </p>
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                3. 복사한 지정가와 수량 입력 후 주문
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Step 5
+    st.markdown("""
+    <div style="background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.15); border-left: 4px solid #8b5cf6; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #8b5cf6, #6d28d9); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                <span style="color: white; font-weight: 800; font-size: 14px;">5</span>
+            </div>
+            <p style="color: #a78bfa; font-size: 16px; font-weight: 700; margin: 0;">체결 후 정보 업데이트</p>
+        </div>
+        <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0 0 12px 0;">
+            주문이 체결되면 <span style="color: #a78bfa;">보유 수량</span>과 <span style="color: #a78bfa;">평균 단가</span>를 업데이트하고,
+            다음 매수 회차로 변경하세요.
+        </p>
+        <div style="background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px;">
+            <p style="color: #6b7280; font-size: 12px; margin: 0 0 4px 0;">
+                ✅ 매수 체결 시: 보유 수량 ↑, 평단가 업데이트, 매수 회차 +1
+            </p>
+            <p style="color: #6b7280; font-size: 12px; margin: 0;">
+                ✅ 매도 체결 시: 보유 수량 = 0, 평단가 = 0, 매수 회차 = 1회차로 리셋
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # LOC 설명 + 주의사항
+    lc1, lc2 = st.columns(2)
+    
+    with lc1:
+        st.markdown("""
+        <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: 16px; padding: 20px; height: 100%;">
+            <p style="color: #a5b4fc; font-size: 14px; font-weight: 700; margin: 0 0 12px 0;">📌 LOC 주문이란?</p>
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.7; margin: 0 0 12px 0;">
+                <span style="color: #ffffff;">Limit On Close</span> (장마감지정가)
+            </p>
+            <p style="color: #6b7280; font-size: 12px; line-height: 1.6; margin: 0;">
+                • 미국 장 마감 직전에 체결되는 지정가 주문<br>
+                • 한국시간 기준 오전 5~6시에 실행<br>
+                • 지정가 이하(매수) / 이상(매도)일 때만 체결<br>
+                • 체결 안 되면 자동 취소됨
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with lc2:
+        st.markdown("""
+        <div style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.15); border-radius: 16px; padding: 20px; height: 100%;">
+            <p style="color: #f87171; font-size: 14px; font-weight: 700; margin: 0 0 12px 0;">⚠️ 주의사항</p>
+            <p style="color: #6b7280; font-size: 12px; line-height: 1.6; margin: 0;">
+                • 3배 레버리지 ETF는 <span style="color: #f87171;">변동성이 큰</span> 상품입니다<br>
+                • 감정 개입 최소화<br>
+                • 반드시 <span style="color: #ffffff;">멈추지 말고</span>투자해야함<br>
+                • 매일 주문을 갱신해야 합니다 (가격 변동)<br>
+                • 손실/수익에 일희일비 금지
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
 
     # ==========================================
     # 거래 기록
