@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
 from datetime import datetime
 import numpy as np
 import streamlit.components.v1 as components
@@ -10,7 +9,7 @@ import requests
 # ==========================================
 # 페이지 설정
 # ==========================================
-st.set_page_config(page_title="S-ATM", page_icon="💎", layout="wide")
+st.set_page_config(page_title="LSW SIGNAL", page_icon="💎", layout="wide", initial_sidebar_state="collapsed")
 
 # ==========================================
 # 스타일
@@ -25,10 +24,9 @@ st.markdown("""
         background: linear-gradient(180deg, #0f0f13 0%, #1a1a23 100%);
     }
     
-    [data-testid="stSidebar"] {
-        background: rgba(15, 15, 19, 0.95);
-        border-right: 1px solid rgba(255,255,255,0.03);
-    }
+    /* 사이드바 완전히 숨기기 */
+    [data-testid="stSidebar"] { display: none; }
+    [data-testid="collapsedControl"] { display: none; }
     
     .stButton > button {
         background: linear-gradient(135deg, #5046e5 0%, #7c3aed 100%);
@@ -56,6 +54,11 @@ st.markdown("""
     
     .stSuccess { background: rgba(34, 197, 94, 0.1) !important; border-radius: 12px !important; }
     .stInfo { background: rgba(59, 130, 246, 0.1) !important; border-radius: 12px !important; }
+    
+    /* 모바일 최적화 */
+    @media (max-width: 768px) {
+        .block-container { padding: 1rem !important; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -68,39 +71,45 @@ if 'avg' not in st.session_state: st.session_state.avg = 115.76
 if 'step' not in st.session_state: st.session_state.step = 2
 
 # ==========================================
-# 사이드바
+# 상단 헤더
 # ==========================================
-with st.sidebar:
-    st.markdown("""
-    <div style="padding: 30px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.03);">
-        <div style="
-            width: 64px; height: 64px;
-            background: linear-gradient(145deg, #5046e5, #7c3aed);
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            box-shadow: 0 12px 40px rgba(80, 70, 229, 0.3);
-        ">
-            <span style="font-size: 28px;">💎</span>
-        </div>
-        <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0;">S-ATM</h1>
-        <p style="color: #6b7280; font-size: 12px; margin-top: 6px;">시그마 자동매매 시스템</p>
+st.markdown("""
+<div style="display: flex; align-items: center; gap: 16px; padding: 10px 0 20px 0;">
+    <div style="
+        width: 50px; height: 50px;
+        background: linear-gradient(145deg, #5046e5, #7c3aed);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 30px rgba(80, 70, 229, 0.3);
+    ">
+        <span style="font-size: 24px;">💎</span>
     </div>
-    """, unsafe_allow_html=True)
-    
-    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-    
-    seed = st.number_input("💰 투자 원금 ($)", value=st.session_state.seed, step=100.0)
-    qty = st.number_input("📊 보유 수량 (주)", value=st.session_state.qty, step=1)
-    avg = st.number_input("💵 평균 단가 ($)", value=st.session_state.avg, step=0.01)
-    step = st.select_slider("🎯 매수 회차", options=[1, 2, 3], value=st.session_state.step)
-    
-    st.session_state.seed = seed
-    st.session_state.qty = qty
-    st.session_state.avg = avg
-    st.session_state.step = step
+    <div>
+        <h1 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0;">LSW SIGNAL</h1>
+        <p style="color: #6b7280; font-size: 12px; margin: 2px 0 0 0;">변동성 자동매매 시스템</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# ⚙️ 계좌 설정
+# ==========================================
+st.markdown('<p style="color: #6b7280; font-size: 13px; font-weight: 600; margin-bottom: 15px;">⚙️ 계좌 설정</p>', unsafe_allow_html=True)
+
+c1, c2 = st.columns(2)
+with c1:
+    seed = st.number_input("💰 투자 원금 ($)", value=st.session_state.seed, step=100.0, key="input_seed")
+    qty = st.number_input("📊 보유 수량 (주)", value=st.session_state.qty, step=1, key="input_qty")
+with c2:
+    avg = st.number_input("💵 평균 단가 ($)", value=st.session_state.avg, step=0.01, key="input_avg")
+    step = st.selectbox("🎯 매수 회차", options=[1, 2, 3], index=st.session_state.step - 1, key="input_step")
+
+st.session_state.seed = seed
+st.session_state.qty = qty
+st.session_state.avg = avg
+st.session_state.step = step
 
 TICKER = "UPRO"
 N_SIGMA, BUY_MULT, SELL_MULT = 2, 0.85, 0.35
@@ -176,8 +185,9 @@ if data is not None and not data.empty and len(data) >= 2:
         """, height=1)
 
     # ==========================================
-    # 상단 헤더
+    # 가격 정보 헤더
     # ==========================================
+    st.markdown("<br>", unsafe_allow_html=True)
     h1, h2 = st.columns([2.5, 1])
     
     with h1:
@@ -191,8 +201,8 @@ if data is not None and not data.empty and len(data) >= 2:
                 <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 6px 14px; border-radius: 10px; font-size: 14px; font-weight: 700; color: white;">{TICKER}</div>
                 <span style="color: #6b7280; font-size: 13px;">3배 레버리지 S&P500</span>
             </div>
-            <div style="display: flex; align-items: baseline; gap: 14px;">
-                <span style="font-size: 48px; font-weight: 800; color: #ffffff;">${last_close:,.2f}</span>
+            <div style="display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap;">
+                <span style="font-size: 42px; font-weight: 800; color: #ffffff;">${last_close:,.2f}</span>
                 <div style="padding: 6px 14px; border-radius: 10px; background: {change_bg};">
                     <span style="color: {change_color}; font-size: 16px; font-weight: 700;">{change_arrow} {abs(change_pct):.2f}%</span>
                 </div>
@@ -209,7 +219,7 @@ if data is not None and not data.empty and len(data) >= 2:
         st.markdown(f"""
         <div style="background: {pnl_bg}; border: 1px solid {pnl_border}; border-radius: 20px; padding: 24px; text-align: center;">
             <p style="color: #9ca3af; font-size: 13px; margin: 0 0 8px 0;">내 수익</p>
-            <p style="color: {pnl_color}; font-size: 32px; font-weight: 800; margin: 0;">{pnl_krw:+,.0f}원</p>
+            <p style="color: {pnl_color}; font-size: 28px; font-weight: 800; margin: 0;">{pnl_krw:+,.0f}원</p>
             <p style="color: {pnl_color}; font-size: 14px; margin-top: 8px;">{pnl_pct:+.2f}%</p>
         </div>
         """, unsafe_allow_html=True)
@@ -224,21 +234,21 @@ if data is not None and not data.empty and len(data) >= 2:
     
     with col1:
         st.markdown(f"""
-        <div style="background: linear-gradient(165deg, rgba(34,197,94,0.06) 0%, rgba(17,17,24,0.9) 100%); border: 1px solid rgba(34,197,94,0.12); border-radius: 24px; padding: 28px; border-top: 4px solid #22c55e;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <span style="background: rgba(34,197,94,0.1); color: #4ade80; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700;">매수 주문</span>
+        <div style="background: linear-gradient(165deg, rgba(34,197,94,0.06) 0%, rgba(17,17,24,0.9) 100%); border: 1px solid rgba(34,197,94,0.12); border-radius: 24px; padding: 24px; border-top: 4px solid #22c55e;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <span style="background: rgba(34,197,94,0.1); color: #4ade80; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700;">매수 주문</span>
                 <span style="color: #6b7280; font-size: 12px;">{step}회차 / 3회차</span>
             </div>
             <p style="color: #71717a; font-size: 12px; margin: 0 0 6px 0;">지정가</p>
-            <p style="color: #ffffff; font-size: 38px; font-weight: 800; margin: 0 0 20px 0;">${buy_loc:.2f}</p>
-            <div style="display: flex; justify-content: space-between; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.04);">
+            <p style="color: #ffffff; font-size: 34px; font-weight: 800; margin: 0 0 18px 0;">${buy_loc:.2f}</p>
+            <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04);">
                 <div>
                     <p style="color: #52525b; font-size: 11px; margin: 0 0 4px 0;">주문 수량</p>
-                    <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0;">{buy_qty}주</p>
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0;">{buy_qty}주</p>
                 </div>
                 <div style="text-align: right;">
                     <p style="color: #52525b; font-size: 11px; margin: 0 0 4px 0;">예상 금액</p>
-                    <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0;">₩{buy_loc*rate*buy_qty:,.0f}</p>
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0;">₩{buy_loc*rate*buy_qty:,.0f}</p>
                 </div>
             </div>
         </div>
@@ -246,21 +256,21 @@ if data is not None and not data.empty and len(data) >= 2:
     
     with col2:
         st.markdown(f"""
-        <div style="background: linear-gradient(165deg, rgba(239,68,68,0.06) 0%, rgba(17,17,24,0.9) 100%); border: 1px solid rgba(239,68,68,0.12); border-radius: 24px; padding: 28px; border-top: 4px solid #ef4444;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <span style="background: rgba(239,68,68,0.1); color: #f87171; padding: 8px 16px; border-radius: 10px; font-size: 13px; font-weight: 700;">매도 주문</span>
+        <div style="background: linear-gradient(165deg, rgba(239,68,68,0.06) 0%, rgba(17,17,24,0.9) 100%); border: 1px solid rgba(239,68,68,0.12); border-radius: 24px; padding: 24px; border-top: 4px solid #ef4444;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <span style="background: rgba(239,68,68,0.1); color: #f87171; padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 700;">매도 주문</span>
                 <span style="color: #6b7280; font-size: 12px;">전량 매도</span>
             </div>
             <p style="color: #71717a; font-size: 12px; margin: 0 0 6px 0;">지정가</p>
-            <p style="color: #ffffff; font-size: 38px; font-weight: 800; margin: 0 0 20px 0;">${sell_loc:.2f}</p>
-            <div style="display: flex; justify-content: space-between; padding-top: 18px; border-top: 1px solid rgba(255,255,255,0.04);">
+            <p style="color: #ffffff; font-size: 34px; font-weight: 800; margin: 0 0 18px 0;">${sell_loc:.2f}</p>
+            <div style="display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04);">
                 <div>
                     <p style="color: #52525b; font-size: 11px; margin: 0 0 4px 0;">주문 수량</p>
-                    <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0;">{qty}주</p>
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0;">{qty}주</p>
                 </div>
                 <div style="text-align: right;">
                     <p style="color: #52525b; font-size: 11px; margin: 0 0 4px 0;">예상 금액</p>
-                    <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0;">₩{sell_loc*rate*qty:,.0f}</p>
+                    <p style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0;">₩{sell_loc*rate*qty:,.0f}</p>
                 </div>
             </div>
         </div>
@@ -290,52 +300,51 @@ if data is not None and not data.empty and len(data) >= 2:
     
     with p1:
         st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 18px; padding: 22px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                <span style="font-size: 20px;">💰</span>
-                <span style="color: #71717a; font-size: 13px;">보유 자산</span>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 18px; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 18px;">💰</span>
+                <span style="color: #71717a; font-size: 12px;">보유 자산</span>
             </div>
-            <p style="color: #ffffff; font-size: 26px; font-weight: 700; margin: 0;">${used_cash:,.0f}</p>
-            <p style="color: #52525b; font-size: 12px; margin-top: 8px;">{qty}주 · 평단 ${avg:.2f}</p>
+            <p style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0;">${used_cash:,.0f}</p>
+            <p style="color: #52525b; font-size: 11px; margin-top: 6px;">{qty}주 · 평단 ${avg:.2f}</p>
         </div>
         """, unsafe_allow_html=True)
     
     with p2:
         st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 18px; padding: 22px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                <span style="font-size: 20px;">💵</span>
-                <span style="color: #71717a; font-size: 13px;">잔여 현금</span>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 18px; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 18px;">💵</span>
+                <span style="color: #71717a; font-size: 12px;">잔여 현금</span>
             </div>
-            <p style="color: #ffffff; font-size: 26px; font-weight: 700; margin: 0;">${remaining:,.0f}</p>
-            <p style="color: #52525b; font-size: 12px; margin-top: 8px;">₩{remaining*rate:,.0f}</p>
+            <p style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0;">${remaining:,.0f}</p>
+            <p style="color: #52525b; font-size: 11px; margin-top: 6px;">₩{remaining*rate:,.0f}</p>
         </div>
         """, unsafe_allow_html=True)
     
     with p3:
         st.markdown(f"""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 18px; padding: 22px;">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-                <span style="font-size: 20px;">📊</span>
-                <span style="color: #71717a; font-size: 13px;">투자 진행률</span>
+        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 18px; padding: 20px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                <span style="font-size: 18px;">📊</span>
+                <span style="color: #71717a; font-size: 12px;">투자 진행률</span>
             </div>
-            <p style="color: #ffffff; font-size: 26px; font-weight: 700; margin: 0;">{progress:.1f}%</p>
-            <div style="margin-top: 12px; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
-                <div style="width: {min(progress, 100)}%; height: 100%; background: linear-gradient(90deg, #5046e5, #7c3aed); border-radius: 4px;"></div>
+            <p style="color: #ffffff; font-size: 22px; font-weight: 700; margin: 0;">{progress:.1f}%</p>
+            <div style="margin-top: 10px; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden;">
+                <div style="width: {min(progress, 100)}%; height: 100%; background: linear-gradient(90deg, #5046e5, #7c3aed); border-radius: 3px;"></div>
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     # ==========================================
-    # 📖 사용 가이드 (분리된 구조)
+    # 📖 사용 가이드
     # ==========================================
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<p style="color: #6b7280; font-size: 13px; font-weight: 600; margin-bottom: 15px;">📖 S-ATM 사용 가이드</p>', unsafe_allow_html=True)
     
-    # 가이드 헤더
     st.markdown("""
-    <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: 20px; padding: 24px; margin-bottom: 16px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
+    <div style="padding: 10px 0;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
             <span style="font-size: 24px;">💡</span>
             <div>
                 <p style="color: #a5b4fc; font-size: 16px; font-weight: 700; margin: 0;">시그마(σ) 기반 LOC 분할매수 전략</p>
@@ -345,108 +354,81 @@ if data is not None and not data.empty and len(data) >= 2:
     </div>
     """, unsafe_allow_html=True)
     
-    # Step 1, 2
     g1, g2 = st.columns(2)
-    
     with g1:
         st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 20px; height: 160px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 14px;">1</span>
+        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 800; font-size: 13px;">1</span>
                 </div>
-                <p style="color: #ffffff; font-size: 15px; font-weight: 600; margin: 0;">투자금 설정</p>
+                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">투자금 설정</p>
             </div>
-            <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0;">
-                왼쪽 사이드바에서 <span style="color: #a5b4fc;">투자 원금(달러)</span>을 입력하세요.
-                이 금액을 기준으로 회차별 매수 금액이 자동 계산됩니다.
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                상단 <span style="color: #a5b4fc;">⚙️ 계좌 설정</span>에서 투자 원금(달러)을 입력하세요.
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
     with g2:
         st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 20px; height: 160px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 14px;">2</span>
+        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 800; font-size: 13px;">2</span>
                 </div>
-                <p style="color: #ffffff; font-size: 15px; font-weight: 600; margin: 0;">LOC 주문 확인</p>
+                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">LOC 주문 확인</p>
             </div>
-            <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0;">
-                상단의 <span style="color: #4ade80;">매수 지정가</span>와 <span style="color: #f87171;">매도 지정가</span>를 확인하세요.
-                이 가격은 시장 변동성에 따라 매일 자동으로 업데이트됩니다.
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                <span style="color: #4ade80;">매수가</span>와 <span style="color: #f87171;">매도가</span>는 매일 자동 업데이트됩니다.
             </p>
         </div>
         """, unsafe_allow_html=True)
     
-    # Step 3, 4
-    st.write("")
     g3, g4 = st.columns(2)
-    
     with g3:
         st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 20px; height: 160px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 14px;">3</span>
+        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 800; font-size: 13px;">3</span>
                 </div>
-                <p style="color: #ffffff; font-size: 15px; font-weight: 600; margin: 0;">3회 분할 매수</p>
+                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">3회 분할 매수</p>
             </div>
-            <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0;">
-                총 투자금은 <span style="color: #a5b4fc;">1 : 1 : 2</span> 비율로 3회에 나눠 투자합니다.
-                1회차 25% → 2회차 25% → 3회차 50% 순서로 진행됩니다.
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                투자금을 <span style="color: #a5b4fc;">1:1:2</span> 비율로 3회 나눠 투자합니다.
             </p>
         </div>
         """, unsafe_allow_html=True)
-    
     with g4:
         st.markdown("""
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 20px; height: 160px;">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #ec4899, #be185d); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-                    <span style="color: white; font-weight: 800; font-size: 14px;">4</span>
+        <div style="background: rgba(255,255,255,0.02); border-radius: 14px; padding: 18px; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #ec4899, #be185d); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <span style="color: white; font-weight: 800; font-size: 13px;">4</span>
                 </div>
-                <p style="color: #ffffff; font-size: 15px; font-weight: 600; margin: 0;">증권사 주문</p>
+                <p style="color: #ffffff; font-size: 14px; font-weight: 600; margin: 0;">증권사 주문</p>
             </div>
-            <p style="color: #9ca3af; font-size: 13px; line-height: 1.7; margin: 0;">
-                <span style="color: #a5b4fc;">"주문 복사"</span> 버튼을 눌러 지정가와 수량을 복사한 뒤,
-                증권사 앱에서 <span style="color: #fbbf24;">LOC(장마감지정가)</span> 주문을 넣으세요.
+            <p style="color: #9ca3af; font-size: 12px; line-height: 1.6; margin: 0;">
+                복사 버튼 → 증권사 앱 <span style="color: #fbbf24;">LOC 주문</span>에 붙여넣기
             </p>
         </div>
         """, unsafe_allow_html=True)
     
-    # 팁 박스
-    st.write("")
     st.markdown("""
-    <div style="padding: 20px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.15); border-radius: 14px; margin-bottom: 12px;">
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 20px;">⚡</span>
-            <div>
-                <p style="color: #fbbf24; font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">처음 시작하는 경우</p>
-                <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0;">
-                    보유 수량과 평균 단가를 <span style="color: #ffffff;">0</span>으로 설정하고, 매수 회차를 <span style="color: #ffffff;">1회차</span>로 선택하세요.
-                    첫 매수가 체결되면 보유 수량과 평단가를 업데이트하고, 회차를 2회차로 변경하면 됩니다.
-                </p>
-            </div>
-        </div>
+    <div style="padding: 16px; background: rgba(251,191,36,0.08); border: 1px solid rgba(251,191,36,0.15); border-radius: 12px; margin-top: 8px;">
+        <p style="color: #fbbf24; font-size: 13px; font-weight: 600; margin: 0 0 6px 0;">⚡ 처음 시작하는 경우</p>
+        <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
+            보유 수량/평단가를 <span style="color: #fff;">0</span>으로, 매수 회차를 <span style="color: #fff;">1회차</span>로 설정 후 시작하세요.
+        </p>
     </div>
     """, unsafe_allow_html=True)
     
-    # LOC 설명 박스
     st.markdown("""
-    <div style="padding: 20px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: 14px;">
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <span style="font-size: 20px;">📌</span>
-            <div>
-                <p style="color: #a5b4fc; font-size: 14px; font-weight: 600; margin: 0 0 6px 0;">LOC 주문이란?</p>
-                <p style="color: #9ca3af; font-size: 13px; line-height: 1.6; margin: 0;">
-                    <span style="color: #ffffff;">Limit On Close</span> - 장 마감 시점에 지정가로 체결되는 주문 방식입니다.
-                    미국 주식시장 마감(한국시간 오전 5~6시) 직전에 주문이 실행되며,
-                    지정한 가격 이하(매수) 또는 이상(매도)일 때만 체결됩니다.
-                </p>
-            </div>
-        </div>
+    <div style="padding: 16px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: 12px; margin-top: 12px;">
+        <p style="color: #a5b4fc; font-size: 13px; font-weight: 600; margin: 0 0 6px 0;">📌 LOC 주문이란?</p>
+        <p style="color: #9ca3af; font-size: 12px; line-height: 1.5; margin: 0;">
+            장 마감 시점에 지정가로 체결되는 주문. 한국시간 오전 5~6시에 실행됩니다.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -477,16 +459,20 @@ if data is not None and not data.empty and len(data) >= 2:
             with open("trade_log.json", "w") as f: json.dump(logs, f, indent=2, ensure_ascii=False)
             st.success("✅ 매도 기록이 저장되었습니다")
 
+    st.write("")
     if st.checkbox("📜 거래 내역 보기"):
         try:
             with open("trade_log.json", "r") as f: logs = json.load(f)
-            if logs: st.dataframe(pd.DataFrame(logs), use_container_width=True, hide_index=True)
-            else: st.info("저장된 거래 내역이 없습니다")
-        except: st.info("저장된 거래 내역이 없습니다")
+            if logs: 
+                st.dataframe(pd.DataFrame(logs), use_container_width=True, hide_index=True)
+            else: 
+                st.info("저장된 거래 내역이 없습니다")
+        except: 
+            st.info("저장된 거래 내역이 없습니다")
 
 else:
     st.markdown("""
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 70vh; text-align: center;">
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; text-align: center;">
         <div style="width: 50px; height: 50px; border: 3px solid rgba(124, 58, 237, 0.2); border-top-color: #7c3aed; border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 24px;"></div>
         <p style="color: #71717a; font-size: 15px;">데이터를 불러오는 중입니다...</p>
     </div>
